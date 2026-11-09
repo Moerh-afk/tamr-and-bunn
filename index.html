@@ -1,0 +1,570 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Tamr &amp; Bunn</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
+<style>
+:root{color-scheme:light;padding-block:env(safe-area-inset-top,0px) env(safe-area-inset-bottom,0px)}
+body{margin:0}
+[hidden]{display:none!important}
+img{max-width:100%}
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=DM+Sans:wght@400;500;700&family=Readex+Pro:wght@300;400;500;700&display=swap">
+<style>
+/* Layout: one wide column. A huge bilingual wordmark opens the page beside a live "open now" card,
+   a Najdi-style triangle band closes the hero, then a menu with tabs and a visit block. */
+:root{
+  --bg:#ECEEE3;
+  --surface:#F6F7F0;
+  --ink:#2B1F1A;
+  --muted:#6A5E54;
+  --accent:#3F5E3C;
+  --on-accent:#F6F7F0;
+  --saffron:#B97A0B;
+  --line:#CDD0BF;
+  --ok:#2E7D4F;
+  --off:#8A7B6E;
+  --err:#B3261E;
+  --f-display:'Bricolage Grotesque','Readex Pro',system-ui,sans-serif;
+  --f-body:'DM Sans','Readex Pro',system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#17130F;--surface:#211B16;--ink:#F0EADF;--muted:#B5A99A;--accent:#9DBF8F;--on-accent:#14200F;
+    --saffron:#E4A93A;--line:#3A3028;--ok:#6FCF97;--off:#8F8174;--err:#F2B8B5;color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#17130F;--surface:#211B16;--ink:#F0EADF;--muted:#B5A99A;--accent:#9DBF8F;--on-accent:#14200F;
+  --saffron:#E4A93A;--line:#3A3028;--ok:#6FCF97;--off:#8F8174;--err:#F2B8B5;color-scheme:dark;
+}
+html[lang="ar"]{--f-display:'Readex Pro',system-ui,sans-serif;--f-body:'Readex Pro',system-ui,sans-serif}
+html[lang="en"] [data-l="ar"],html[lang="ar"] [data-l="en"]{display:none}
+
+*{box-sizing:border-box}
+body{
+  background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.55;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:0;
+}
+.wrap{max-width:1040px;margin-inline:auto}
+h1,h2,h3,p{margin:0}
+:focus-visible{outline:2px solid var(--saffron);outline-offset:3px}
+
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;padding-block:20px}
+.brand{font-family:var(--f-display);font-weight:800;font-size:1.15rem;letter-spacing:-.01em}
+.brand i{font-style:normal;color:var(--saffron)}
+.langbtn{
+  font:inherit;font-weight:500;font-size:.95rem;color:var(--ink);background:transparent;
+  border:1px solid var(--line);border-radius:999px;padding:8px 16px;cursor:pointer;
+}
+.langbtn:hover{border-color:var(--accent)}
+
+.hero{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:40px;align-items:end;padding-block:40px 52px}
+h1{
+  font-family:var(--f-display);font-weight:800;font-size:clamp(3.4rem,12vw,7.2rem);
+  line-height:.92;letter-spacing:-.035em;text-wrap:balance;
+}
+h1 .amp{color:var(--saffron)}
+html[lang="ar"] h1{letter-spacing:0;line-height:1.25}
+.tag{font-size:1.2rem;color:var(--muted);max-width:34ch;margin-top:22px}
+
+.today{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:22px}
+.label{font-size:.75rem;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);font-weight:700}
+html[lang="ar"] .label{letter-spacing:0;text-transform:none;font-size:.85rem}
+.status{display:flex;align-items:center;gap:10px;margin-top:10px;font-family:var(--f-display);font-weight:800;font-size:1.35rem;line-height:1.25}
+.dot{flex:none;width:12px;height:12px;border-radius:50%;background:var(--off)}
+.dot.on{background:var(--ok);box-shadow:0 0 0 4px color-mix(in srgb,var(--ok) 25%,transparent)}
+.services{margin-top:14px;color:var(--muted);font-size:.95rem}
+
+.band{
+  height:14px;width:100%;
+  background:conic-gradient(from -45deg at bottom,var(--accent) 90deg,transparent 0) 0 0/28px 14px repeat-x;
+}
+
+section{padding-block:56px 8px}
+h2{font-family:var(--f-display);font-weight:800;font-size:clamp(1.8rem,5vw,2.5rem);letter-spacing:-.02em;line-height:1.1}
+html[lang="ar"] h2{letter-spacing:0;line-height:1.3}
+.sub{color:var(--muted);margin-top:8px;max-width:52ch}
+
+.tabs{display:flex;flex-wrap:wrap;gap:8px;margin-top:24px}
+.tab{
+  font:inherit;font-weight:500;color:var(--ink);background:transparent;border:1px solid var(--line);
+  border-radius:999px;padding:8px 18px;cursor:pointer;
+}
+.tab:hover{border-color:var(--accent)}
+.tab[aria-pressed="true"]{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+
+.items{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));column-gap:48px;margin-top:20px}
+.item{padding-block:16px;border-bottom:1px solid var(--line);min-width:0}
+.row{display:flex;align-items:baseline;gap:10px}
+.name{font-weight:700;min-width:0}
+.dots{flex:1;min-width:12px;border-bottom:2px dotted var(--line);transform:translateY(-4px)}
+.price{font-variant-numeric:tabular-nums;font-weight:700;color:var(--accent);white-space:nowrap}
+.desc{color:var(--muted);font-size:.93rem;margin-top:4px}
+
+.visit{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:32px;margin-top:24px}
+.block{min-width:0}
+.hours{width:100%;border-collapse:collapse;margin-top:10px}
+.hours td{padding:12px 0;border-bottom:1px solid var(--line)}
+.hours td:last-child{text-align:end;font-variant-numeric:tabular-nums}
+.hours tr.today-row td{font-weight:700;color:var(--accent)}
+.block p{margin-top:10px}
+.muted{color:var(--muted)}
+
+.item-foot{margin-top:12px}
+.add{
+  font:inherit;font-weight:700;font-size:.9rem;color:var(--accent);background:transparent;
+  border:1.5px solid var(--accent);border-radius:999px;padding:6px 18px;cursor:pointer;
+}
+.add:hover{background:var(--accent);color:var(--on-accent)}
+.stepper{display:inline-flex;align-items:center;gap:4px;border:1.5px solid var(--accent);border-radius:999px;padding:2px}
+.step{
+  font:inherit;font-size:1.1rem;line-height:1;width:32px;height:32px;border-radius:50%;border:0;
+  background:var(--accent);color:var(--on-accent);cursor:pointer;
+}
+.q{min-width:28px;text-align:center;font-weight:700;font-variant-numeric:tabular-nums}
+
+.order{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:32px;margin-top:24px;align-items:start}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:22px;min-width:0}
+.cl{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:12px;align-items:center;padding-block:12px;border-bottom:1px solid var(--line)}
+.cl-name{font-weight:700;min-width:0}
+.cl-price{font-variant-numeric:tabular-nums;font-weight:700;min-width:64px;text-align:end}
+.tot{display:flex;justify-content:space-between;gap:12px;padding-top:10px;font-variant-numeric:tabular-nums}
+.tot.grand{font-family:var(--f-display);font-weight:800;font-size:1.25rem;border-top:1px solid var(--line);margin-top:10px;padding-top:12px}
+.field{display:grid;gap:6px;margin-top:14px}
+.field label,legend{font-weight:700;font-size:.92rem;padding:0}
+input[type=text],input[type=tel],textarea{
+  font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);
+  border-radius:10px;padding:10px 12px;width:100%;
+}
+textarea{resize:vertical;min-height:72px}
+fieldset{border:0;padding:0;margin:18px 0 0;min-width:0}
+.pay{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px}
+.pay label{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:10px;padding:10px 14px;cursor:pointer;font-weight:500}
+.pay input{accent-color:var(--accent)}
+.order-btn{
+  display:block;text-align:center;text-decoration:none;font-weight:700;background:var(--accent);
+  color:var(--on-accent);border-radius:12px;padding:14px 18px;margin-top:20px;
+}
+.order-btn[aria-disabled="true"]{opacity:.5}
+.err{color:var(--err);margin-top:12px;font-weight:500}
+.note{margin-top:12px;color:var(--muted);font-size:.9rem}
+.hint{color:var(--muted);font-size:.85rem}
+.hint a{color:var(--accent);font-weight:700}
+.lbl{font-weight:700;font-size:.92rem}
+#map{position:relative;z-index:0;height:300px;border:1px solid var(--line);border-radius:12px}
+.leaflet-container{font:inherit}
+.geo{
+  font:inherit;font-weight:700;color:var(--accent);background:transparent;
+  border:1.5px solid var(--accent);border-radius:999px;padding:8px 16px;cursor:pointer;
+}
+.geo:hover{background:var(--accent);color:var(--on-accent)}
+.pin-ico{
+  width:26px;height:26px;background:var(--accent);border:3px solid var(--on-accent);
+  border-radius:50% 50% 50% 0;transform:rotate(-45deg);box-shadow:0 2px 6px rgba(0,0,0,.35);
+}
+.bar{
+  position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);border-top:1px solid var(--line);
+  padding-top:12px;padding-bottom:calc(12px + env(safe-area-inset-bottom,0px));
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+}
+.bar-in{max-width:1040px;margin-inline:auto;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.bar-count{font-weight:700;font-variant-numeric:tabular-nums}
+.bar-btn{
+  font:inherit;font-weight:700;background:var(--accent);color:var(--on-accent);border:0;
+  border-radius:999px;padding:10px 20px;cursor:pointer;
+}
+.has-bar footer{padding-bottom:96px}
+
+footer{margin-top:64px;padding-block:28px 40px;border-top:1px solid var(--line);color:var(--muted);font-size:.88rem}
+
+@media (max-width:760px){
+  .hero{grid-template-columns:minmax(0,1fr);gap:28px;padding-block:24px 40px}
+}
+@media (prefers-reduced-motion:no-preference){
+  .langbtn,.tab{transition:background .15s,border-color .15s,color .15s}
+}
+</style>
+
+<script>
+(function(){
+  var l='en';
+  try{
+    var s=localStorage.getItem('tb-lang');
+    if(s==='ar'||s==='en'){l=s}
+    else if((navigator.language||'').toLowerCase().indexOf('ar')===0){l='ar'}
+  }catch(e){}
+  document.documentElement.lang=l;
+  document.documentElement.dir=l==='ar'?'rtl':'ltr';
+})();
+</script>
+
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand"><span data-l="en">Tamr <i>&amp;</i> Bunn</span><span data-l="ar">تمر <i>و</i> بن</span></div>
+    <button class="langbtn" id="langbtn" type="button" aria-label="Switch language / تغيير اللغة">
+      <span data-l="en">العربية</span><span data-l="ar">English</span>
+    </button>
+  </header>
+
+  <div class="hero">
+    <div>
+      <h1><span data-l="en">Tamr <span class="amp">&amp;</span> Bunn</span><span data-l="ar">تمر <span class="amp">و</span> بن</span></h1>
+      <p class="tag">
+        <span data-l="en">Cardamom coffee, fresh dates and slow mornings in Riyadh.</span>
+        <span data-l="ar">قهوة بالهيل وتمر طازج وصباحات هادئة في الرياض.</span>
+      </p>
+    </div>
+    <div class="today">
+      <div class="label"><span data-l="en">Today</span><span data-l="ar">اليوم</span></div>
+      <div class="status"><span class="dot" id="dot"></span><span id="status"></span></div>
+      <p class="services">
+        <span data-l="en">Dine in · Takeaway · Delivery</span>
+        <span data-l="ar">جلسات · سفري · توصيل</span>
+      </p>
+    </div>
+  </div>
+  <div class="band" aria-hidden="true"></div>
+
+  <section id="menu">
+    <h2><span data-l="en">Menu</span><span data-l="ar">القائمة</span></h2>
+    <p class="sub">
+      <span data-l="en">Everything is made to order. Prices in Saudi riyals, VAT included.</span>
+      <span data-l="ar">كل شيء يُحضَّر عند الطلب. الأسعار بالريال السعودي شاملة الضريبة.</span>
+    </p>
+    <div class="tabs" id="tabs"></div>
+    <div class="items" id="items"></div>
+  </section>
+
+  <section id="order">
+    <h2><span data-l="en">Your order</span><span data-l="ar">طلبك</span></h2>
+    <p class="sub">
+      <span data-l="en">Pay with cash or by card when the order arrives.</span>
+      <span data-l="ar">الدفع نقدًا أو بالبطاقة عند الاستلام.</span>
+    </p>
+    <div class="order">
+      <div class="panel">
+        <div id="cart-lines"></div>
+        <div id="cart-totals"></div>
+      </div>
+      <div class="panel">
+        <div class="field">
+          <label for="f-name"><span data-l="en">Name</span><span data-l="ar">الاسم</span></label>
+          <input type="text" id="f-name" autocomplete="name">
+        </div>
+        <div class="field">
+          <label for="f-phone"><span data-l="en">Phone</span><span data-l="ar">رقم الجوال</span></label>
+          <input type="tel" id="f-phone" dir="auto" autocomplete="tel">
+        </div>
+        <div class="field">
+          <label for="f-addr"><span data-l="en">Address or landmark</span><span data-l="ar">العنوان أو أقرب معلم</span></label>
+          <textarea id="f-addr" autocomplete="street-address"></textarea>
+        </div>
+        <div class="field">
+          <div class="lbl"><span data-l="en">Pin your location</span><span data-l="ar">حدّد موقعك على الخريطة</span></div>
+          <div id="map" dir="ltr"></div>
+          <div><button type="button" class="geo" id="geo"><span data-l="en">Use my current location</span><span data-l="ar">استخدم موقعي الحالي</span></button></div>
+          <p class="hint" id="pin-status"></p>
+        </div>
+        <div class="field">
+          <label for="f-code"><span data-l="en">Short address code (optional)</span><span data-l="ar">العنوان المختصر (اختياري)</span></label>
+          <input type="text" id="f-code" dir="ltr" maxlength="8" autocapitalize="characters" autocomplete="off">
+          <p class="hint">
+            <span data-l="en">The 4 letters and 4 numbers from your National Address, like RRRD2929.</span>
+            <span data-l="ar">٤ أحرف و٤ أرقام من العنوان الوطني، مثل RRRD2929.</span>
+          </p>
+        </div>
+        <div class="field">
+          <label for="f-notes"><span data-l="en">Notes (optional)</span><span data-l="ar">ملاحظات (اختياري)</span></label>
+          <input type="text" id="f-notes">
+        </div>
+        <fieldset>
+          <legend><span data-l="en">Payment</span><span data-l="ar">الدفع</span></legend>
+          <div class="pay">
+            <label for="pay-cash"><input type="radio" name="pay" id="pay-cash" value="cash" checked><span data-l="en">Cash on delivery</span><span data-l="ar">نقدًا عند الاستلام</span></label>
+            <label for="pay-card"><input type="radio" name="pay" id="pay-card" value="card"><span data-l="en">Card on delivery</span><span data-l="ar">بطاقة عند الاستلام</span></label>
+          </div>
+        </fieldset>
+        <p class="err" id="err" hidden>
+          <span data-l="en">Add at least one item, then fill in your name, phone and a way to find you: a pin on the map, an address or a short address code.</span>
+          <span data-l="ar">أضف صنفًا واحدًا على الأقل، ثم اكتب اسمك ورقمك وطريقة الوصول إليك: موقع على الخريطة أو عنوان أو عنوان مختصر.</span>
+        </p>
+        <a class="order-btn" id="wa" href="https://wa.me/" target="_blank" rel="noopener" aria-disabled="true">
+          <span data-l="en">Send order on WhatsApp</span><span data-l="ar">أرسل الطلب عبر واتساب</span>
+        </a>
+        <p class="note" id="done" hidden>
+          <span data-l="en">WhatsApp should now be open with your order written out. Send the message to place the order.</span>
+          <span data-l="ar">يجب أن يكون واتساب مفتوحًا الآن وفيه طلبك جاهزًا. أرسل الرسالة لإتمام الطلب.</span>
+        </p>
+        <p class="note">
+          <span data-l="en">Demo: this opens WhatsApp so you can pick a contact. On a real shop's site it goes straight to the shop's number, and nothing is ordered until the message is sent.</span>
+          <span data-l="ar">تجربة: يفتح هذا واتساب لتختار جهة اتصال. في موقع متجر حقيقي يذهب مباشرة إلى رقم المتجر، ولا يتم الطلب إلا بعد إرسال الرسالة.</span>
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section id="visit">
+    <h2><span data-l="en">Visit us</span><span data-l="ar">زورونا</span></h2>
+    <div class="visit">
+      <div class="block">
+        <div class="label"><span data-l="en">Opening hours</span><span data-l="ar">ساعات العمل</span></div>
+        <table class="hours">
+          <tr id="row-main"><td><span data-l="en">Saturday to Thursday</span><span data-l="ar">السبت إلى الخميس</span></td><td><span data-l="en">7 AM – 11 PM</span><span data-l="ar">٧ ص – ١١ م</span></td></tr>
+          <tr id="row-fri"><td><span data-l="en">Friday</span><span data-l="ar">الجمعة</span></td><td><span data-l="en">1 PM – 11 PM</span><span data-l="ar">١ م – ١١ م</span></td></tr>
+        </table>
+      </div>
+      <div class="block">
+        <div class="label"><span data-l="en">Find us</span><span data-l="ar">الموقع</span></div>
+        <p>
+          <span data-l="en">Al Olaya District, Riyadh<br><span class="muted">Sample address</span></span>
+          <span data-l="ar">حي العليا، الرياض<br><span class="muted">عنوان تجريبي</span></span>
+        </p>
+        <div class="label" style="margin-top:22px"><span data-l="en">Order on WhatsApp</span><span data-l="ar">اطلب عبر واتساب</span></div>
+        <p dir="ltr" style="text-align:start">+966 5X XXX XXXX <span class="muted" data-l="en">(sample number)</span><span class="muted" data-l="ar">(رقم تجريبي)</span></p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span data-l="en">Sample website. The name, menu and contact details are placeholders for a demo.</span>
+    <span data-l="ar">موقع تجريبي. الاسم والقائمة وبيانات التواصل أمثلة للعرض فقط.</span>
+  </footer>
+
+  <div class="bar" id="bar" hidden>
+    <div class="bar-in">
+      <span class="bar-count" id="bar-count"></span>
+      <button type="button" class="bar-btn" id="bar-btn"><span data-l="en">View order</span><span data-l="ar">عرض الطلب</span></button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<script>
+(function(){
+  var root=document.documentElement;
+  function L(en,ar){return '<span data-l="en">'+en+'</span><span data-l="ar">'+ar+'</span>'}
+
+  var cats=[
+    {id:'coffee',en:'Coffee',ar:'القهوة'},
+    {id:'special',en:'Specialty',ar:'مشروبات مميزة'},
+    {id:'bites',en:'Bites',ar:'مأكولات'}
+  ];
+  var menu={
+    coffee:[
+      ['Saudi Qahwa','قهوة سعودية','Light roast with cardamom, served with dates.','تحميص خفيف بالهيل، تُقدَّم مع التمر.',22],
+      ['Spanish Latte','سبانش لاتيه','Espresso, steamed milk and a little condensed milk.','إسبريسو وحليب مبخّر مع لمسة من الحليب المكثف.',19],
+      ['V60 Pour Over','في 60','Single-origin beans, brewed to order.','حبوب من مصدر واحد، تُحضَّر عند الطلب.',21],
+      ['Cold Brew','كولد برو','Steeped for 18 hours, served over ice.','منقوع لمدة ١٨ ساعة، يُقدَّم مع الثلج.',18],
+      ['Cardamom Flat White','فلات وايت بالهيل','Double ristretto, silky milk, ground cardamom.','ريستريتو مزدوج وحليب ناعم وهيل مطحون.',20]
+    ],
+    special:[
+      ['Saffron Latte','لاتيه الزعفران','Steamed milk, saffron threads and honey.','حليب مبخّر وخيوط زعفران وعسل.',23],
+      ['Date Latte','لاتيه التمر','Espresso with Khalas date syrup.','إسبريسو مع دبس تمر الخلاص.',22],
+      ['Karak Tea','شاي كرك','Strong spiced tea simmered with milk.','شاي مُتبَّل قوي مغلي مع الحليب.',10],
+      ['Rose Lemon Cooler','مبرّد الليمون بالورد','Fresh lemon, rose water and mint.','ليمون طازج وماء ورد ونعناع.',16]
+    ],
+    bites:[
+      ['Date Plate','طبق تمر','Khalas and Sukkari dates with tahini.','تمر خلاص وسكري مع الطحينة.',16],
+      ['Cheese Sambousek (3)','سمبوسة جبن (٣)','Crisp pastry filled with melted cheese.','عجينة مقرمشة محشوة بالجبن الذائب.',14],
+      ['Maamoul (2)','معمول (٢)','Semolina cookies filled with dates.','كعك السميد المحشو بالتمر.',12],
+      ['Za’atar Croissant','كرواسون بالزعتر','Buttery croissant baked with za’atar.','كرواسون بالزبدة مخبوز مع الزعتر.',15]
+    ]
+  };
+  var current='coffee';
+
+  function renderTabs(){
+    var h='';
+    cats.forEach(function(c){
+      h+='<button type="button" class="tab" data-id="'+c.id+'" aria-pressed="'+(c.id===current)+'">'+L(c.en,c.ar)+'</button>';
+    });
+    document.getElementById('tabs').innerHTML=h;
+  }
+  var cart={};
+  var DELIVERY=10;
+  var WA_NUMBER=''; /* A real shop's number, digits only with country code, e.g. 9665XXXXXXXX. Empty opens WhatsApp's contact picker. */
+  function itemOf(k){var p=k.split('-');return menu[p[0]][+p[1]]}
+  function stepper(k,q){
+    return '<div class="stepper"><button type="button" class="step" data-k="'+k+'" data-act="dec">−</button>'
+      +'<span class="q">'+q+'</span>'
+      +'<button type="button" class="step" data-k="'+k+'" data-act="inc">+</button></div>';
+  }
+  function renderItems(){
+    var h='';
+    menu[current].forEach(function(m,i){
+      var k=current+'-'+i,q=cart[k]||0;
+      h+='<div class="item"><div class="row"><div class="name">'+L(m[0],m[1])+'</div><div class="dots"></div>'
+        +'<div class="price">'+m[4]+' '+L('SAR','ر.س')+'</div></div>'
+        +'<p class="desc">'+L(m[2],m[3])+'</p>'
+        +'<div class="item-foot">'+(q>0?stepper(k,q):'<button type="button" class="add" data-k="'+k+'" data-act="inc">'+L('Add','أضف')+'</button>')+'</div></div>';
+    });
+    document.getElementById('items').innerHTML=h;
+  }
+  document.getElementById('tabs').addEventListener('click',function(e){
+    var b=e.target.closest('.tab');
+    if(!b)return;
+    current=b.getAttribute('data-id');
+    renderTabs();renderItems();
+  });
+
+  document.getElementById('langbtn').addEventListener('click',function(){
+    var n=root.lang==='ar'?'en':'ar';
+    root.lang=n;root.dir=n==='ar'?'rtl':'ltr';
+    try{localStorage.setItem('tb-lang',n)}catch(e){}
+  });
+
+  /* Opening hours, evaluated in Riyadh time. Friday opens at 1 PM. */
+  function now(){
+    var parts=new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Riyadh',weekday:'short',hour:'numeric',minute:'numeric',hourCycle:'h23'}).formatToParts(new Date());
+    var o={};parts.forEach(function(p){o[p.type]=p.value});
+    var days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    return {d:days.indexOf(o.weekday),m:(parseInt(o.hour,10)%24)*60+parseInt(o.minute,10)};
+  }
+  function opensAt(d){return d===5?13*60:7*60}
+  function opensLabel(d){return d===5?L('1 PM','١ م'):L('7 AM','٧ ص')}
+  function updateStatus(){
+    var t=now(),isOpen=t.m>=opensAt(t.d)&&t.m<23*60,html;
+    if(isOpen){
+      html=L('Open now · closes 11 PM','مفتوح الآن · يغلق ١١ م');
+    }else if(t.m<opensAt(t.d)){
+      html=L('Closed · opens ','مغلق · يفتح ')+opensLabel(t.d)+L(' today',' اليوم');
+    }else{
+      html=L('Closed · opens tomorrow ','مغلق · يفتح غدًا ')+opensLabel((t.d+1)%7);
+    }
+    document.getElementById('status').innerHTML=html;
+    document.getElementById('dot').className='dot'+(isOpen?' on':'');
+    document.getElementById('row-fri').className=t.d===5?'today-row':'';
+    document.getElementById('row-main').className=t.d===5?'':'today-row';
+  }
+
+  function cartTotals(){
+    var sub=0,count=0;
+    Object.keys(cart).forEach(function(k){sub+=itemOf(k)[4]*cart[k];count+=cart[k]});
+    return {sub:sub,count:count,fee:count?DELIVERY:0};
+  }
+  function renderCart(){
+    var t=cartTotals(),keys=Object.keys(cart),h='';
+    keys.forEach(function(k){
+      var m=itemOf(k),q=cart[k];
+      h+='<div class="cl"><div class="cl-name">'+L(m[0],m[1])+'</div>'+stepper(k,q)
+        +'<div class="cl-price">'+(m[4]*q)+' '+L('SAR','ر.س')+'</div></div>';
+    });
+    if(!keys.length){
+      h='<p class="muted">'+L('Your order is empty. Add items from the menu above.','طلبك فارغ. أضف أصنافًا من القائمة أعلاه.')+'</p>';
+    }
+    document.getElementById('cart-lines').innerHTML=h;
+    document.getElementById('cart-totals').innerHTML=
+      '<div class="tot"><span>'+L('Subtotal','المجموع الفرعي')+'</span><span>'+t.sub+' '+L('SAR','ر.س')+'</span></div>'
+      +'<div class="tot"><span>'+L('Delivery','التوصيل')+'</span><span>'+t.fee+' '+L('SAR','ر.س')+'</span></div>'
+      +'<div class="tot grand"><span>'+L('Total','الإجمالي')+'</span><span>'+(t.sub+t.fee)+' '+L('SAR','ر.س')+'</span></div>';
+    var bar=document.getElementById('bar');
+    bar.hidden=t.count===0;
+    document.body.classList.toggle('has-bar',t.count>0);
+    document.getElementById('bar-count').innerHTML=L('Items: '+t.count+' · '+(t.sub+t.fee)+' SAR','الأصناف: '+t.count+' · '+(t.sub+t.fee)+' ر.س');
+    document.getElementById('wa').setAttribute('aria-disabled',t.count===0?'true':'false');
+  }
+
+  document.addEventListener('click',function(e){
+    var b=e.target.closest('[data-act]');
+    if(!b)return;
+    var k=b.getAttribute('data-k'),a=b.getAttribute('data-act');
+    var q=Math.max(0,(cart[k]||0)+(a==='inc'?1:-1));
+    if(q){cart[k]=q}else{delete cart[k]}
+    document.getElementById('done').hidden=true;
+    renderItems();renderCart();
+    var again=document.querySelector('[data-k="'+k+'"][data-act="'+a+'"]')||document.querySelector('[data-k="'+k+'"]');
+    if(again)again.focus();
+  });
+
+  document.getElementById('bar-btn').addEventListener('click',function(){
+    document.getElementById('order').scrollIntoView({behavior:'smooth',block:'start'});
+  });
+
+  function val(id){return document.getElementById(id).value.trim()}
+  function buildMessage(){
+    var ar=root.lang==='ar',i=ar?1:0,cur=ar?'ر.س':'SAR',t=cartTotals(),out=[];
+    out.push(ar?'طلب جديد من تمر وبن':'New order from Tamr & Bunn');
+    out.push('');
+    Object.keys(cart).forEach(function(k){
+      var m=itemOf(k);
+      out.push(cart[k]+' × '+m[i]+' — '+(m[4]*cart[k])+' '+cur);
+    });
+    out.push('');
+    out.push((ar?'المجموع الفرعي: ':'Subtotal: ')+t.sub+' '+cur);
+    out.push((ar?'التوصيل: ':'Delivery: ')+t.fee+' '+cur);
+    out.push((ar?'الإجمالي: ':'Total: ')+(t.sub+t.fee)+' '+cur);
+    var card=document.getElementById('pay-card').checked;
+    out.push((ar?'الدفع: ':'Payment: ')+(card?(ar?'بطاقة عند الاستلام':'Card on delivery'):(ar?'نقدًا عند الاستلام':'Cash on delivery')));
+    out.push('');
+    out.push((ar?'الاسم: ':'Name: ')+val('f-name'));
+    out.push((ar?'الجوال: ':'Phone: ')+val('f-phone'));
+    if(val('f-addr'))out.push((ar?'العنوان: ':'Address: ')+val('f-addr'));
+    if(pin)out.push((ar?'موقع الخريطة: ':'Map pin: ')+pinLink());
+    if(val('f-code'))out.push((ar?'العنوان المختصر: ':'Short address: ')+val('f-code').toUpperCase());
+    if(val('f-notes'))out.push((ar?'ملاحظات: ':'Notes: ')+val('f-notes'));
+    return out.join('\n');
+  }
+  document.getElementById('wa').addEventListener('click',function(e){
+    var where=val('f-addr')||val('f-code')||pin;
+    var ok=cartTotals().count>0&&val('f-name')&&val('f-phone')&&where;
+    document.getElementById('err').hidden=!!ok;
+    if(!ok){e.preventDefault();return}
+    this.href=(WA_NUMBER?'https://wa.me/'+WA_NUMBER:'https://wa.me/')+'?text='+encodeURIComponent(buildMessage());
+    document.getElementById('done').hidden=false;
+  });
+
+  /* Map pin picker: Leaflet with OpenStreetMap tiles. The GPS button needs the site to be served over https. */
+  var pin=null,marker=null,map=null,LF=window.L; /* LF is Leaflet. Inside this file L() is the language helper. */
+  function pinLink(){return 'https://www.google.com/maps?q='+pin.lat.toFixed(6)+','+pin.lng.toFixed(6)}
+  function showPin(){
+    document.getElementById('pin-status').innerHTML=pin
+      ?L('Pin set · ','تم تحديد الموقع · ')+pin.lat.toFixed(5)+', '+pin.lng.toFixed(5)
+      :L('Tap the map or drag the pin to your door.','اضغط على الخريطة أو اسحب الدبوس إلى باب منزلك.');
+  }
+  function setPin(lat,lng,zoomIn){
+    pin={lat:lat,lng:lng};
+    if(!marker){
+      marker=LF.marker([lat,lng],{draggable:true,icon:LF.divIcon({className:'',html:'<div class="pin-ico"></div>',iconSize:[26,26],iconAnchor:[13,31]})}).addTo(map);
+      marker.on('dragend',function(){var p=marker.getLatLng();pin={lat:p.lat,lng:p.lng};showPin()});
+    }else{
+      marker.setLatLng([lat,lng]);
+    }
+    if(zoomIn)map.setView([lat,lng],17);
+    showPin();
+  }
+  if(LF){
+    map=LF.map('map').setView([24.7136,46.6753],12);
+    LF.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap contributors'}).addTo(map);
+    map.on('click',function(e){setPin(e.latlng.lat,e.latlng.lng,false)});
+  }else{
+    document.getElementById('map').innerHTML='<p class="hint" style="padding:16px">'+L('The map could not load. Use the address or short code instead.','تعذر تحميل الخريطة. استخدم العنوان أو العنوان المختصر.')+'</p>';
+  }
+  document.getElementById('geo').addEventListener('click',function(){
+    var s=document.getElementById('pin-status');
+    if(!map||!navigator.geolocation){
+      s.innerHTML=L('Location is not available on this device. Tap the map instead.','الموقع غير متاح على هذا الجهاز. اضغط على الخريطة بدلًا من ذلك.');
+      return;
+    }
+    s.innerHTML=L('Finding you…','جارٍ تحديد موقعك…');
+    navigator.geolocation.getCurrentPosition(function(p){
+      setPin(p.coords.latitude,p.coords.longitude,true);
+    },function(){
+      s.innerHTML=L('Could not get your location. Allow location access, or tap the map instead.','تعذر تحديد موقعك. اسمح بالوصول إلى الموقع، أو اضغط على الخريطة.');
+    },{enableHighAccuracy:true,timeout:10000});
+  });
+  showPin();
+
+  renderTabs();renderItems();renderCart();updateStatus();
+  setInterval(updateStatus,60000);
+})();
+</script>
+</body>
+</html>
